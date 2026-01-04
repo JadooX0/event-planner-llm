@@ -1,4 +1,4 @@
-import torch
+
 from PIL import Image
 from transformers import pipeline, LlavaNextProcessor, LlavaNextForConditionalGeneration, BitsAndBytesConfig
 from langchain_huggingface import HuggingFacePipeline
