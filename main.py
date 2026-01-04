@@ -17,13 +17,14 @@ import streamlit as st
 from langchain_openai import ChatOpenAI
 
 
+
 llm = ChatOpenAI(
-    model="google/gemini-3-flash-preview", 
-    api_key=st.secrets["OPENROUTER_API_KEY"], 
+    model="google/gemini-2.0-flash-exp:free", 
+    api_key=st.secrets["OPENROUTER_API_KEY"],
     openai_api_base="https://openrouter.ai/api/v1",
-    
+    max_tokens=500, 
     default_headers={
-        "HTTP-Referer": "https://your-app-name.streamlit.app",
+        "HTTP-Referer": "https://your-app.streamlit.app",
         "X-Title": "Event Planner Assistant"
     }
 )
@@ -58,4 +59,5 @@ if uploaded_file:
                 st.success("Analysis Complete!")
                 st.markdown(response.content)
             except Exception as e:
+
                 st.error(f"Error: {e}")
