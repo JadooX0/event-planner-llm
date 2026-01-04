@@ -52,11 +52,6 @@ Vision AI: Uses Qwen 2.5 VL or Gemini 3 Flash to "see" and interpret event poste
 
 Auto-Extraction: Instantly identifies Event Name, Date, Venue, and Pricing without manual entry.
 
-Conversational Assistant
-Context-Aware Q&A: Ask follow-up questions about the poster, such as "Is there a parking fee?" or "Suggest a dress code based on this theme."
-
-Natural Language: Powered by LangChain for smooth, human-like dialogue.
-
 Cloud Ready
 Secrets Management: Fully integrated with Streamlit Cloud's encrypted secrets.
 
