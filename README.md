@@ -28,7 +28,7 @@ Create and activate a virtual environment:
 
 PowerShell
 
-# For Windows PowerShell
+
 python -m venv MACS
 . .\MACS\Scripts\Activate.ps1
 Install dependencies:
