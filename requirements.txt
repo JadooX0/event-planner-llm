@@ -2,4 +2,3 @@ streamlit
 langchain-openai
 python-dotenv
 pillow
-torch
