@@ -26,7 +26,7 @@ def encode_image(uploaded_file):
     bytes_data = uploaded_file.getvalue()
     return base64.b64encode(bytes_data).decode('utf-8')
 
-st.title("OpenRouter Event Planner")
+st.title("MACS Event Planner")
 st.subheader(f"Powered by {SELECTED_MODEL.split('/')[-1]}")
 
 uploaded_file = st.file_uploader("Upload Event Poster", type=["jpg", "png", "jpeg"])
@@ -55,3 +55,4 @@ if uploaded_file:
                 st.markdown(response.content)
             except Exception as e:
                 st.error(f"Error: {e}")
+
