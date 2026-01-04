@@ -1,64 +1,53 @@
-
-from PIL import Image
-from transformers import pipeline, LlavaNextProcessor, LlavaNextForConditionalGeneration, BitsAndBytesConfig
-from langchain_huggingface import HuggingFacePipeline
-from langchain_core.prompts import PromptTemplate
-from transformers.utils.logging import set_verbosity_error
-
-set_verbosity_error()
+import streamlit as st
+import os
+import base64
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
 
 
-model_id = "llava-hf/llava-v1.6-34b-hf" 
+load_dotenv()
 
 
-quantization_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_compute_dtype=torch.float16
+llm = ChatOpenAI(
+    model="google/gemini-3-flash-preview", 
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+    openai_api_base="https://openrouter.ai/api/v1",
+    max_tokens=500, 
+    default_headers={
+        "HTTP-Referer": "http://localhost:8501", 
+        "X-Title": "Event Planner Assistant"
+    }
 )
 
 
-processor = LlavaNextProcessor.from_pretrained(model_id)
-model = LlavaNextForConditionalGeneration.from_pretrained(
-    model_id, 
-    quantization_config=quantization_config, 
-    device_map="auto"
-)
+def encode_image(uploaded_file):
+    bytes_data = uploaded_file.getvalue()
+    return base64.b64encode(bytes_data).decode('utf-8')
 
+st.title("Gemini Event Planner")
 
-llava_pipeline = pipeline(
-    "image-to-text", 
-    model=model, 
-    tokenizer=processor.tokenizer, 
-    image_processor=processor.image_processor,
-    max_new_tokens=500
-)
-llm = HuggingFacePipeline(pipeline=llava_pipeline)
+uploaded_file = st.file_uploader("Upload Event Poster", type=["jpg", "png", "jpeg"])
 
-
-template = """USER: <image>\n{instruction}\n\n{text}
-ASSISTANT:"""
-prompt = PromptTemplate.from_template(template)
-
-
-image_path = input("Enter the path to the event poster image: ")
-image = Image.open(image_path).convert("RGB")
-
-instruction = "Extract the event name, date, venue, and a brief summary from this poster."
-chain = prompt | llm
-
-
-result = chain.invoke({"instruction": instruction, "text": "", "images": image})
-
-print("\n🔹 **Poster Analysis:**")
-print(result)
-
-
-while True:
-    question = input("\nAsk a question about the event (or type 'exit' to stop):\n")
-    if question.lower() == "exit":
-        break
+if uploaded_file:
     
+    st.image(uploaded_file, caption="Uploaded Poster", width=300)
     
-    qa_result = chain.invoke({"instruction": question, "text": result, "images": image})
-    print("\n🔹 **Answer:**")
-    print(qa_result)
+    if st.button("Analyze Poster"):
+        base64_image = encode_image(uploaded_file)
+        
+        
+        message = HumanMessage(
+            content=[
+                {"type": "text", "text": "Extract: Event Name, Date, Time, Venue, and Ticket Price from this poster. Format as a clean list."},
+                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+            ]
+        )
+        
+        with st.spinner("Gemini is reading the poster..."):
+            try:
+                response = llm.invoke([message])
+                st.success("Analysis Complete!")
+                st.markdown(response.content)
+            except Exception as e:
+                st.error(f"Error: {e}")
