@@ -9,14 +9,6 @@ from langchain_core.messages import HumanMessage
 load_dotenv()
 
 
-import streamlit as st
-from langchain_openai import ChatOpenAI
-
-
-import streamlit as st
-from langchain_openai import ChatOpenAI
-
-
 
 llm = ChatOpenAI(
     model="google/gemini-2.0-flash-exp:free", 
@@ -61,3 +53,4 @@ if uploaded_file:
             except Exception as e:
 
                 st.error(f"Error: {e}")
+
