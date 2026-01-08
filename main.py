@@ -27,6 +27,11 @@ def encode_image(uploaded_file):
 st.title("MACS Event Planner")
 st.subheader(f"Powered by {SELECTED_MODEL.split('/')[-1]}")
 
+def clear_chat_history():
+    
+    st.session_state.chat_history = []
+    st.session_state.analyzer_result = ""
+    st.rerun()
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -68,6 +73,16 @@ for msg in st.session_state.chat_history:
         st.markdown(msg.content)
 
 
+def analysis_is_failed():
+    
+    failure_keywords = ["could not find", "no details detected", "blurry", "unable to read", "cannot see"," Not provided in the image."]
+    
+    
+    if not st.session_state.analyzer_result:
+        return True
+    return any(word in st.session_state.analyzer_result.lower() for word in failure_keywords)
+
+
 if user_query := st.chat_input("Ask a follow-up question..."):
     if st.session_state.poster_base64 is None:
         st.warning("Please upload a poster first!")
@@ -77,16 +92,12 @@ if user_query := st.chat_input("Ask a follow-up question..."):
             st.markdown(user_query)
         st.session_state.chat_history.append(HumanMessage(content=user_query))
 
-        
-        failure_keywords = ["could not find", "no details detected", "blurry", "unable to read", "cannot see"]
-        is_failed = any(word in st.session_state.analyzer_result.lower() for word in failure_keywords)
-
         with st.chat_message("assistant"):
-            if is_failed and st.session_state.analyzer_result != "":
-               
-                fallback_msg = f"As mentioned in the initial analysis: {st.session_state.analyzer_result}"
-                st.markdown(fallback_msg)
-                st.session_state.chat_history.append(AIMessage(content=fallback_msg))
+            
+            if analysis_is_failed():
+                error_feedback = "**Access Denied:** I cannot answer questions because the initial poster analysis failed to extract required details. Please upload a clearer image."
+                st.error(error_feedback)
+                st.session_state.chat_history.append(AIMessage(content=error_feedback))
             else:
                 
                 with st.spinner("Thinking..."):
@@ -95,7 +106,6 @@ if user_query := st.chat_input("Ask a follow-up question..."):
                             {"type": "text", "text": user_query},
                             {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{st.session_state.poster_base64}"}}
                         ]
-                        
                         memory_context = st.session_state.chat_history[-5:]
                         response = llm.invoke(memory_context + [HumanMessage(content=current_payload)])
                         
